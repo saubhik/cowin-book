@@ -39,10 +39,6 @@ def main():
                 info.beneficiary_dtls,
                 info.location_dtls,
                 min_slots=info.minimum_slots,
-                ref_freq=info.refresh_freq,
-                auto_book=info.auto_book,
-                start_date=info.start_date,
-                vaccine_type=info.vaccine_type,
                 fee_type=info.fee_type,
             )
 
