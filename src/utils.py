@@ -3,10 +3,9 @@ import datetime
 import json
 import os
 import random
-import smtplib
+import subprocess
 import sys
 import time
-from hashlib import sha256
 
 import requests
 import tabulate
@@ -20,66 +19,50 @@ CALENDAR_URL_DISTRICT = (
     "https://cdn-api.co-vin.in/api/v2/appointment"
     "/sessions/calendarByDistrict?district_id={0}&date={1} "
 )
-# CALENDAR_URL_PINCODE = (
-#     "https://cdn-api.co-vin.in/api/v2/appointment/sessions"
-#     "/calendarByPin?pincode={0}&date={1} "
-# )
 CAPTCHA_URL = "https://cdn-api.co-vin.in/api/v2/auth/getRecaptcha"
-# OTP_PUBLIC_URL = "https://cdn-api.co-vin.in/api/v2/auth/public/generateOTP"
 OTP_PRO_URL = "https://cdn-api.co-vin.in/api/v2/auth/generateMobileOTP"
 
 
-def send_email():
-    print("Sending e-mail...")
-    from_addr = "saubhik.mukherjee@gmail.com"
-    to_addrs = [from_addr]
-    subject = f"Check COWIN Bot"
-    body = """\
-    Please tend to your bot.
-    
-    Thank you very much.
-    """
-
-    try:
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-        server.ehlo()
-        server.login(user=from_addr, password=os.environ["EMAIL_PASSWORD"])
-        server.sendmail(
-            from_addr=from_addr,
-            to_addrs=to_addrs,
-            msg="Subject: {}\n\n{}".format(subject, body),
-        )
-        print("Email sent...")
-    except Exception as e:
-        print("Exception!")
+def reauthorize():
+    subprocess.run(["node", "src/get-token.js"])
 
 
 def viable_options(resp, minimum_slots, min_age_booking, fee_type):
     options = []
+    display_options = []
     if len(resp["centers"]) >= 0:
         for center in resp["centers"]:
+            can_display = False
+            total_available_capacity = 0
             for session in center["sessions"]:
-                if (
-                        (session["available_capacity"] >= minimum_slots)
-                        and (session["min_age_limit"] <= min_age_booking)
-                        and (center["fee_type"] in fee_type)
+                if (session["min_age_limit"] <= min_age_booking) and (
+                    center["fee_type"] in fee_type
                 ):
-                    out = {
+                    can_display = True
+                    total_available_capacity += session["available_capacity"]
+                    if session["available_capacity"] >= minimum_slots:
+                        out = {
+                            "name": center["name"],
+                            "district": center["district_name"],
+                            "pincode": center["pincode"],
+                            "center_id": center["center_id"],
+                            "available": session["available_capacity"],
+                            "date": session["date"],
+                            "slots": session["slots"],
+                            "session_id": session["session_id"],
+                        }
+                        options.append(out)
+            if can_display:
+                display_options.append(
+                    {
                         "name": center["name"],
                         "district": center["district_name"],
                         "pincode": center["pincode"],
-                        "center_id": center["center_id"],
-                        "available": session["available_capacity"],
-                        "date": session["date"],
-                        "slots": session["slots"],
-                        "session_id": session["session_id"],
+                        "capacity": total_available_capacity,
                     }
-                    options.append(out)
+                )
 
-                else:
-                    pass
-    else:
-        pass
+    display_table(display_options)
 
     return options
 
@@ -116,13 +99,13 @@ def get_saved_user_info(filename):
 
 
 def check_calendar_by_district(
-        request_header,
-        vaccine_type,
-        location_dtls,
-        start_date,
-        minimum_slots,
-        min_age_booking,
-        fee_type,
+    request_header,
+    vaccine_type,
+    location_dtls,
+    start_date,
+    minimum_slots,
+    min_age_booking,
+    fee_type,
 ):
     """
     This function
@@ -132,9 +115,6 @@ def check_calendar_by_district(
         4. Returns list of vaccination centers & slots if available
     """
     try:
-        print(
-            "=================================================================================== "
-        )
         today = datetime.datetime.today()
         base_url = CALENDAR_URL_DISTRICT
 
@@ -156,14 +136,14 @@ def check_calendar_by_district(
                 resp = resp.json()
                 if "centers" in resp:
                     print(
-                        f"Centers available in {location['district_name']} from {start_date} as of {today.strftime('%Y-%m-%d %H:%M:%S')}: {len(resp['centers'])}"
+                        f"Centers available in {location['district_name']} "
+                        f"from {start_date} as of "
+                        f"{today.strftime('%Y-%m-%d %H:%M:%S')}: "
+                        f"{len(resp['centers'])}"
                     )
                     options += viable_options(
                         resp, minimum_slots, min_age_booking, fee_type
                     )
-
-            else:
-                pass
 
         return options
 
@@ -180,7 +160,6 @@ def generate_captcha(request_header):
     print(f"Booking Response Code: {resp.status_code}")
 
     if resp.status_code == 200:
-        # captcha_buider(resp.json())
         captcha = captcha_buider(resp.json())
         return captcha
 
@@ -203,8 +182,7 @@ def book_appointment(request_header, details):
                 "=================================================="
             )
 
-            resp = requests.post(BOOKING_URL, headers=request_header,
-                                 json=details)
+            resp = requests.post(BOOKING_URL, headers=request_header, json=details)
             print(f"Booking Response Code: {resp.status_code}")
             print(f"Booking Response : {resp.text}")
 
@@ -213,13 +191,7 @@ def book_appointment(request_header, details):
                 return False
 
             elif resp.status_code == 200:
-                send_email()
-                print(
-                    "##############    BOOKED!  ############################  "
-                    "  BOOKED!  ##############"
-                )
-                print(
-                    "Hey, Hey, Hey! It's your lucky day!                      " " ")
+                print("Hey, Hey, Hey! It's your lucky day!")
                 print("\nPress any key thrice to exit program.")
                 os.system("pause")
                 os.system("pause")
@@ -259,7 +231,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
 
         if isinstance(start_date, int) and start_date == 2:
             start_date = (
-                    datetime.datetime.today() + datetime.timedelta(days=1)
+                datetime.datetime.today() + datetime.timedelta(days=1)
             ).strftime("%d-%m-%Y")
         elif isinstance(start_date, int) and start_date == 1:
             start_date = datetime.datetime.today().strftime("%d-%m-%Y")
@@ -309,8 +281,8 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
             else:
                 choice = inputimeout(
                     prompt="----------> Wait 20 seconds for updated options "
-                           "OR \n----------> Enter a choice e.g: 1.4 for (1st "
-                           "center 4th slot): ",
+                    "OR \n----------> Enter a choice e.g: 1.4 for (1st "
+                    "center 4th slot): ",
                     timeout=20,
                 )
 
@@ -340,13 +312,10 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
 
                 new_req = {
                     "beneficiaries": [
-                        beneficiary["bref_id"] for beneficiary in
-                        beneficiary_dtls
+                        beneficiary["bref_id"] for beneficiary in beneficiary_dtls
                     ],
                     "dose": 2
-                    if
-                    [beneficiary["status"] for beneficiary in beneficiary_dtls][
-                        0]
+                    if [beneficiary["status"] for beneficiary in beneficiary_dtls][0]
                     == "Partially Vaccinated"
                     else 1,
                     "center_id": options[choice[0] - 1]["center_id"],
@@ -372,75 +341,3 @@ def get_min_age(beneficiary_dtls):
     age_list = [item["age"] for item in beneficiary_dtls]
     min_age = min(age_list)
     return min_age
-
-
-def generate_token_OTP(mobile, request_header):
-    """
-    This function generate OTP and returns a new token
-    """
-    valid_token = False
-    while not valid_token:
-        try:
-            data = {
-                "mobile": mobile,
-                "secret": "U2FsdGVkX1+z/4Nr9nta+2DrVJSv7KS6VoQUSQ1ZXYDx"
-                          "/CJUkWxFYG6P3iM/VW+6jLQ9RDQVzp/RcZ8kbT41xw==",
-            }
-            txnId = requests.post(url=OTP_PRO_URL, json=data,
-                                  headers=request_header)
-
-            if txnId.status_code == 200:
-                print(
-                    f"Successfully requested OTP for mobile number {mobile} at "
-                    f"{datetime.datetime.today()}.. "
-                )
-                txnId = txnId.json()["txnId"]
-
-                OTP = input(
-                    "Enter OTP (If this takes more than 2 minutes, press "
-                    "Enter to retry): "
-                )
-                if OTP:
-                    data = {
-                        "otp": sha256(str(OTP).encode("utf-8")).hexdigest(),
-                        "txnId": txnId,
-                    }
-                    print(f"Validating OTP..")
-
-                    token = requests.post(
-                        url="https://cdn-api.co-vin.in/api/v2/auth"
-                            "/validateMobileOtp",
-                        json=data,
-                        headers=request_header,
-                    )
-                    if token.status_code == 200:
-                        token = token.json()["token"]
-                        print(f"Token Generated: {token}")
-                        valid_token = True
-                        return token
-
-                    else:
-                        print("Unable to Validate OTP")
-                        print(f"Response: {token.text}")
-
-                        retry = input(
-                            f"Retry with {mobile} ? (y/n Default y): ")
-                        retry = retry if retry else "y"
-                        if retry == "y":
-                            pass
-                        else:
-                            sys.exit()
-
-            else:
-                print("Unable to Generate OTP")
-                print(txnId.status_code, txnId.text)
-
-                retry = input(f"Retry with {mobile} ? (y/n Default y): ")
-                retry = retry if retry else "y"
-                if retry == "y":
-                    pass
-                else:
-                    sys.exit()
-
-        except Exception as e:
-            print(str(e))

@@ -1,0 +1,35 @@
+{
+  "beneficiary_dtls": [
+    {
+      "bref_id": "98312943786090",
+      "name": "Ankita Chakraborty",
+      "vaccine": "",
+      "age": 26,
+      "status": "Not Vaccinated"
+    },
+    {
+      "bref_id": "41366670003920",
+      "name": "Devargha Ray",
+      "vaccine": "",
+      "age": 23,
+      "status": "Not Vaccinated"
+    }
+  ],
+  "location_dtls": [
+    {
+      "district_id": 725,
+      "district_name": "Kolkata"
+    }
+  ],
+  "search_option": 2,
+  "minimum_slots": 2,
+  "refresh_freq": 5,
+  "auto_book": "yes-please",
+  "start_date": 1,
+  "vaccine_type": null,
+  "fee_type": [
+    "Paid"
+  ],
+  "auth": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwZDkyODU4MC0zYWY1LTQ1ODgtYjE1Yi02N2MzZmY4MjEzODEiLCJ1c2VyX2lkIjoiMGQ5Mjg1ODAtM2FmNS00NTg4LWIxNWItNjdjM2ZmODIxMzgxIiwidXNlcl90eXBlIjoiQkVORUZJQ0lBUlkiLCJtb2JpbGVfbnVtYmVyIjo5MDUxMTMyNTc4LCJiZW5lZmljaWFyeV9yZWZlcmVuY2VfaWQiOjk4MzEyOTQzNzg2MDkwLCJzZWNyZXRfa2V5IjoiYjVjYWIxNjctNzk3Ny00ZGYxLTgwMjctYTYzYWExNDRmMDRlIiwidWEiOiJNb3ppbGxhLzUuMCAoWDExOyBMaW51eCB4ODZfNjQpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS85MS4wLjQ0NjkuMCBTYWZhcmkvNTM3LjM2IiwiZGF0ZV9tb2RpZmllZCI6IjIwMjEtMDUtMTVUMTM6MDY6NTguMTIxWiIsImlhdCI6MTYyMTA4NDAxOCwiZXhwIjoxNjIxMDg0OTE4fQ.e2aISVbu0gL01CwOQoe8NIeMeiYHgh7_Ff_f39jutr4",
+  "phone": "9051132578"
+}
