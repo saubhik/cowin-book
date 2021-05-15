@@ -20,7 +20,6 @@ CALENDAR_URL_DISTRICT = (
     "/sessions/calendarByDistrict?district_id={0}&date={1} "
 )
 CAPTCHA_URL = "https://cdn-api.co-vin.in/api/v2/auth/getRecaptcha"
-OTP_PRO_URL = "https://cdn-api.co-vin.in/api/v2/auth/generateMobileOTP"
 
 
 def reauthorize():
@@ -36,7 +35,7 @@ def viable_options(resp, minimum_slots, min_age_booking, fee_type):
             total_available_capacity = 0
             for session in center["sessions"]:
                 if (session["min_age_limit"] <= min_age_booking) and (
-                    center["fee_type"] in fee_type
+                        center["fee_type"] in fee_type
                 ):
                     can_display = True
                     total_available_capacity += session["available_capacity"]
@@ -99,13 +98,13 @@ def get_saved_user_info(filename):
 
 
 def check_calendar_by_district(
-    request_header,
-    vaccine_type,
-    location_dtls,
-    start_date,
-    minimum_slots,
-    min_age_booking,
-    fee_type,
+        request_header,
+        vaccine_type,
+        location_dtls,
+        start_date,
+        minimum_slots,
+        min_age_booking,
+        fee_type,
 ):
     """
     This function
@@ -172,6 +171,7 @@ def book_appointment(request_header, details):
         3. Returns True or False depending on Token Validity
     """
     try:
+        subprocess.Popen(["cvlc", "src/siren.mp3"])
         valid_captcha = True
         while valid_captcha:
             captcha = generate_captcha(request_header)
@@ -182,7 +182,8 @@ def book_appointment(request_header, details):
                 "=================================================="
             )
 
-            resp = requests.post(BOOKING_URL, headers=request_header, json=details)
+            resp = requests.post(BOOKING_URL, headers=request_header,
+                                 json=details)
             print(f"Booking Response Code: {resp.status_code}")
             print(f"Booking Response : {resp.text}")
 
@@ -231,7 +232,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
 
         if isinstance(start_date, int) and start_date == 2:
             start_date = (
-                datetime.datetime.today() + datetime.timedelta(days=1)
+                    datetime.datetime.today() + datetime.timedelta(days=1)
             ).strftime("%d-%m-%Y")
         elif isinstance(start_date, int) and start_date == 1:
             start_date = datetime.datetime.today().strftime("%d-%m-%Y")
@@ -281,8 +282,8 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
             else:
                 choice = inputimeout(
                     prompt="----------> Wait 20 seconds for updated options "
-                    "OR \n----------> Enter a choice e.g: 1.4 for (1st "
-                    "center 4th slot): ",
+                           "OR \n----------> Enter a choice e.g: 1.4 for (1st "
+                           "center 4th slot): ",
                     timeout=20,
                 )
 
@@ -298,38 +299,38 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
         time.sleep(1)
         return True
 
+    if choice == ".":
+        return True
     else:
-        if choice == ".":
-            return True
-        else:
-            try:
-                choice = choice.split(".")
-                choice = [int(item) for item in choice]
-                print(
-                    f"============> Got Choice: Center #{choice[0]}, "
-                    f"Slot #{choice[1]}"
-                )
+        try:
+            choice = choice.split(".")
+            choice = [int(item) for item in choice]
+            print(
+                f"============> Got Choice: Center #{choice[0]}, "
+                f"Slot #{choice[1]}"
+            )
 
-                new_req = {
-                    "beneficiaries": [
-                        beneficiary["bref_id"] for beneficiary in beneficiary_dtls
-                    ],
-                    "dose": 2
-                    if [beneficiary["status"] for beneficiary in beneficiary_dtls][0]
-                    == "Partially Vaccinated"
-                    else 1,
-                    "center_id": options[choice[0] - 1]["center_id"],
-                    "session_id": options[choice[0] - 1]["session_id"],
-                    "slot": options[choice[0] - 1]["slots"][choice[1] - 1],
-                }
+            new_req = {
+                "beneficiaries": [
+                    beneficiary["bref_id"] for beneficiary in
+                    beneficiary_dtls
+                ],
+                "dose": 2
+                if
+                [beneficiary["status"] for beneficiary in beneficiary_dtls][
+                    0]
+                == "Partially Vaccinated"
+                else 1,
+                "center_id": options[choice[0] - 1]["center_id"],
+                "session_id": options[choice[0] - 1]["session_id"],
+                "slot": options[choice[0] - 1]["slots"][choice[1] - 1],
+            }
 
-                print(f"Booking with info: {new_req}")
-                return book_appointment(request_header, new_req)
+            print(f"Booking with info: {new_req}")
+            return book_appointment(request_header, new_req)
 
-            except IndexError:
-                print("============> Invalid Option!")
-                os.system("pause")
-                pass
+        except IndexError:
+            print("============> Invalid Option!")
 
 
 def get_min_age(beneficiary_dtls):

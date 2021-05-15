@@ -41,7 +41,7 @@ function sleep(time) {
 }
 
 (async () => {
-    const config = require('../config.json');
+    const config = require('/home/saubhik/Documents/covid-vaccine-booking/config.json');
 
     const browser = await puppeteer.launch({
         headless: false,
@@ -65,7 +65,7 @@ function sleep(time) {
         ) {
             const headers = request.headers();
             config.auth = headers['authorization'];
-            fs.writeFileSync('../config.json', JSON.stringify(config, null, 2));
+            fs.writeFileSync('/home/saubhik/Documents/covid-vaccine-booking/config.json', JSON.stringify(config, null, 2));
             await browser.close();
         }
     });
