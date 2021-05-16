@@ -33,7 +33,7 @@ def viable_options(resp, minimum_slots, min_age_booking, fee_type):
             total_available_capacity = 0
             for session in center["sessions"]:
                 if (session["min_age_limit"] <= min_age_booking) and (
-                    center["fee_type"] in fee_type
+                        center["fee_type"] in fee_type
                 ):
                     can_display = True
                     total_available_capacity += session["available_capacity"]
@@ -96,12 +96,12 @@ def get_saved_user_info(filename):
 
 
 def check_calendar_by_district(
-    request_header,
-    location_dtls,
-    start_date,
-    minimum_slots,
-    min_age_booking,
-    fee_type,
+        request_header,
+        location_dtls,
+        start_date,
+        minimum_slots,
+        min_age_booking,
+        fee_type,
 ):
     """
     This function
@@ -165,7 +165,8 @@ def book_appointment(request_header, details):
         3. Returns True or False depending on Token Validity
     """
     try:
-        subprocess.Popen(["cvlc", "src/siren.mp3"])
+        subprocess.Popen(["vlc", "-I", "rc", "src/siren.mp3"], shell=False,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         valid_captcha = True
         while valid_captcha:
             captcha = generate_captcha(request_header)
@@ -284,7 +285,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
                 ],
                 "dose": 2
                 if [beneficiary["status"] for beneficiary in beneficiary_dtls][0]
-                == "Partially Vaccinated"
+                   == "Partially Vaccinated"
                 else 1,
                 "center_id": options[choice[0] - 1]["center_id"],
                 "session_id": options[choice[0] - 1]["session_id"],
