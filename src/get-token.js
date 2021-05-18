@@ -3,6 +3,7 @@ const puppeteer = require('puppeteer');
 const fastify = require('fastify');
 const cors = require('fastify-cors');
 
+const configPath = __dirname + "/../config.json"
 const selectors = {
     mobileInput: 'input[appmobilenumber=true]',
     getOtp: 'ion-button',
@@ -41,7 +42,7 @@ function sleep(time) {
 }
 
 (async () => {
-    const config = require('/Users/saubhik/Documents/cowin-book/config.json');
+    const config = require(configPath);
 
     const browser = await puppeteer.launch({
         headless: false,
@@ -65,7 +66,7 @@ function sleep(time) {
         ) {
             const headers = request.headers();
             config.auth = headers['authorization'];
-            fs.writeFileSync('/Users/saubhik/Documents/cowin-book/config.json', JSON.stringify(config, null, 2));
+            fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
             await browser.close();
         }
     });
