@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import copy
 from types import SimpleNamespace
 
@@ -38,6 +36,7 @@ def main():
                 request_header,
                 info.beneficiary_dtls,
                 info.location_dtls,
+                preferred_slot=info.preferred_slot,
                 min_slots=info.minimum_slots,
                 fee_type=info.fee_type,
             )

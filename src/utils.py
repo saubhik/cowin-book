@@ -1,7 +1,6 @@
 import copy
 import datetime
 import json
-import os
 import subprocess
 import sys
 import time
@@ -33,7 +32,7 @@ def viable_options(resp, minimum_slots, min_age_booking, fee_type):
             total_available_capacity = 0
             for session in center["sessions"]:
                 if (session["min_age_limit"] <= min_age_booking) and (
-                        center["fee_type"] in fee_type
+                    center["fee_type"] in fee_type
                 ):
                     can_display = True
                     total_available_capacity += session["available_capacity"]
@@ -49,6 +48,7 @@ def viable_options(resp, minimum_slots, min_age_booking, fee_type):
                             "session_id": session["session_id"],
                         }
                         options.append(out)
+
             if can_display:
                 display_options.append(
                     {
@@ -96,12 +96,12 @@ def get_saved_user_info(filename):
 
 
 def check_calendar_by_district(
-        request_header,
-        location_dtls,
-        start_date,
-        minimum_slots,
-        min_age_booking,
-        fee_type,
+    request_header,
+    location_dtls,
+    start_date,
+    minimum_slots,
+    min_age_booking,
+    fee_type,
 ):
     """
     This function
@@ -139,7 +139,6 @@ def check_calendar_by_district(
                     )
 
         return options
-
     except Exception as e:
         print(str(e))
 
@@ -165,8 +164,14 @@ def book_appointment(request_header, details):
         3. Returns True or False depending on Token Validity
     """
     try:
-        subprocess.Popen(["vlc", "-I", "rc", "src/siren.mp3"], shell=False,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # Requires VLC to be installed.
+        # Might need to change to cvlc in Linux.
+        subprocess.Popen(
+            ["vlc", "-I", "rc", "src/siren.mp3"],
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         valid_captcha = True
         while valid_captcha:
             captcha = generate_captcha(request_header)
@@ -182,15 +187,11 @@ def book_appointment(request_header, details):
             print(f"Booking Response : {resp.text}")
 
             if resp.status_code == 401:
-                print("TOKEN INVALID")
                 return False
 
             elif resp.status_code == 200:
                 print("Hey, Hey, Hey! It's your lucky day!")
                 print("\nPress any key thrice to exit program.")
-                os.system("pause")
-                os.system("pause")
-                os.system("pause")
                 sys.exit()
 
             elif resp.status_code == 400:
@@ -216,10 +217,14 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
     """
     min_age_booking = get_min_age(beneficiary_dtls)
 
+    preferred_slot = kwargs["preferred_slot"]
     minimum_slots = kwargs["min_slots"]
     fee_type = kwargs["fee_type"]
 
-    start_date = datetime.datetime.today().strftime("%d-%m-%Y")
+    # Start checking available slots from next day.
+    start_date = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime(
+        "%d-%m-%Y"
+    )
 
     options = check_calendar_by_district(
         request_header,
@@ -254,13 +259,9 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
         display_table(cleaned_options_for_display)
         print(
             "AUTO-BOOKING IS ENABLED. PROCEEDING WITH FIRST CENTRE, "
-            "DATE, and FIRST SLOT."
+            "DATE, and PREFERRED SLOT."
         )
-        # option = options[0]
-        # random_slot = random.randint(1, len(option["slots"]))
-        slot = 1
-        choice = f"1.{slot}"
-
+        choice = f"1.{preferred_slot}"
     else:
         for i in range(5, 0, -1):
             msg = f"No viable options. Next update in {i} seconds.."
@@ -285,7 +286,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
                 ],
                 "dose": 2
                 if [beneficiary["status"] for beneficiary in beneficiary_dtls][0]
-                   == "Partially Vaccinated"
+                == "Partially Vaccinated"
                 else 1,
                 "center_id": options[choice[0] - 1]["center_id"],
                 "session_id": options[choice[0] - 1]["session_id"],

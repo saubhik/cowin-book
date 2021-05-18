@@ -1,16 +1,20 @@
 {
   "beneficiary_dtls": [
     {
-      "bref_id": "98312943786090",
-      "name": "Ankita Chakraborty",
-      "vaccine": "",
+      "bref_id": "98312943781111",
+      "name": "ABCD",
       "age": 26,
       "status": "Not Vaccinated"
     },
     {
-      "bref_id": "41366670003920",
-      "name": "Devargha Ray",
-      "vaccine": "",
+      "bref_id": "42878309532222",
+      "name": "EFGH",
+      "age": 37,
+      "status": "Not Vaccinated"
+    },
+    {
+      "bref_id": "41366670003333",
+      "name": "IJKL",
       "age": 23,
       "status": "Not Vaccinated"
     }
@@ -21,10 +25,11 @@
       "district_name": "Kolkata"
     }
   ],
-  "minimum_slots": 10,
+  "minimum_slots": 15,
+  "preferred_slot": 1,
   "fee_type": [
     "Paid"
   ],
-  "auth": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJjNjg0YzM4ZC00YTE4LTRkZWQtYmIzMC02OTNjZGMyMWZkNjQiLCJ1c2VyX2lkIjoiYzY4NGMzOGQtNGExOC00ZGVkLWJiMzAtNjkzY2RjMjFmZDY0IiwidXNlcl90eXBlIjoiQkVORUZJQ0lBUlkiLCJtb2JpbGVfbnVtYmVyIjo5MDUxMTMyNTc4LCJiZW5lZmljaWFyeV9yZWZlcmVuY2VfaWQiOjQxMzY2NjcwMDAzOTIwLCJzZWNyZXRfa2V5IjoiYjVjYWIxNjctNzk3Ny00ZGYxLTgwMjctYTYzYWExNDRmMDRlIiwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvOTEuMC40NDY5LjAgU2FmYXJpLzUzNy4zNiIsImRhdGVfbW9kaWZpZWQiOiIyMDIxLTA1LTE2VDAwOjU2OjU4LjU0NFoiLCJpYXQiOjE2MjExMjY2MTgsImV4cCI6MTYyMTEyNzUxOH0.N_4xuxl6PBn445wd37aJr4g0aGbjeokG_QEYp4PLkZY",
-  "phone": "9051132578"
+  "auth": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJjNjg0YzM4ZC00YTE4LTRkZWQtYmIzMC02OTNjZGMyMWZkNjQiLCJ1c2VyX2lkIjoiYzY4NGMzOGQtNGExOC00ZGVkLWJiMzAtNjkzY2RjMjFmZDY0IiwidXNlcl90eXBlIjoiQkVORUZJQ0lBUlkiLCJtb2JpbGVfbnVtYmVyIjo5MDUxMTMyNTc4LCJiZW5lZmljaWFyeV9yZWZlcmVuY2VfaWQiOjQxMzY2NjcwMDAzOTIwLCJzZWNyZXRfa2V5IjoiYjVjYWIxNjctNzk3Ny00ZGYxLTgwMjctYTYzYWExNDRmMDRlIiwidWEiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMF8xNV83KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvOTEuMC40NDY5LjAgU2FmYXJpLzUzNy4zNiIsImRhdGVfbW9kaWZpZWQiOiIyMDIxLTA1LTE3VDA4OjA0OjI2Ljg2OFoiLCJpYXQiOjE2MjEyMzg2NjYsImV4cCI6MTYyMTIzOTU2Nn0.ke_yvQjh2nQLvNOyV-RCqFpi6YNKyGi_SzNspFIfppp",
+  "phone": "9051132222"
 }
