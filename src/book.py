@@ -38,7 +38,6 @@ def main():
                 info.location_dtls,
                 preferred_slot=info.preferred_slot,
                 min_slots=info.minimum_slots,
-                fee_type=info.fee_type,
             )
 
             # check if token is still valid

@@ -23,7 +23,7 @@ def reauthorize():
     subprocess.run(["node", "src/get-token.js"])
 
 
-def viable_options(resp, minimum_slots, min_age_booking, fee_type):
+def viable_options(resp, minimum_slots, min_age_booking):
     options = []
     display_options = []
     if len(resp["centers"]) >= 0:
@@ -31,9 +31,7 @@ def viable_options(resp, minimum_slots, min_age_booking, fee_type):
             can_display = False
             total_available_capacity = 0
             for session in center["sessions"]:
-                if (session["min_age_limit"] <= min_age_booking) and (
-                    center["fee_type"] in fee_type
-                ):
+                if session["min_age_limit"] <= min_age_booking:
                     can_display = True
                     total_available_capacity += session["available_capacity"]
                     if session["available_capacity"] >= minimum_slots:
@@ -101,8 +99,7 @@ def check_calendar_by_district(
     location_dtls,
     start_date,
     minimum_slots,
-    min_age_booking,
-    fee_type,
+    min_age_booking
 ):
     """
     This function
@@ -136,7 +133,7 @@ def check_calendar_by_district(
                         f"{len(resp['centers'])}"
                     )
                     options += viable_options(
-                        resp, minimum_slots, min_age_booking, fee_type
+                        resp, minimum_slots, min_age_booking
                     )
 
         return options
@@ -220,7 +217,6 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
 
     preferred_slot = kwargs["preferred_slot"]
     minimum_slots = kwargs["min_slots"]
-    fee_type = kwargs["fee_type"]
 
     # Start checking available slots from next day.
     start_date = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime(
@@ -232,8 +228,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
         location_dtls,
         start_date,
         minimum_slots,
-        min_age_booking,
-        fee_type,
+        min_age_booking
     )
 
     if isinstance(options, bool):
