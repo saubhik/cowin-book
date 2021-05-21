@@ -28,5 +28,6 @@
   "minimum_slots": 15,
   "preferred_slot": 1,
   "auth": "",
-  "phone": "9836552222"
+  "phone": "9836552222",
+  "port": 8888,
 }
