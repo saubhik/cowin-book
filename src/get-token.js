@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 const fastify = require('fastify');
 const cors = require('fastify-cors');
 
-const configPath = __dirname + "/../config.json"
+const configPath = __dirname + "/../" + process.argv.slice(2)[0]
 const selectors = {
     mobileInput: 'input[appmobilenumber=true]',
     getOtp: 'ion-button',
@@ -14,6 +14,7 @@ const selectors = {
 function waitForSms() {
     return new Promise((resolve) => {
         const server = fastify();
+        const config = require(configPath);
 
         server.register(cors, {
             origin: true,
@@ -31,7 +32,7 @@ function waitForSms() {
             }
         });
 
-        server.listen(8888);
+        server.listen(config.port);
     });
 }
 

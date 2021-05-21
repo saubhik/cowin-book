@@ -19,8 +19,8 @@ CALENDAR_URL_DISTRICT = (
 CAPTCHA_URL = "https://cdn-api.co-vin.in/api/v2/auth/getRecaptcha"
 
 
-def reauthorize():
-    subprocess.run(["node", "src/get-token.js"])
+def reauthorize(filename):
+    subprocess.run(["node", "src/get-token.js", filename])
 
 
 def viable_options(resp, minimum_slots, min_age_booking):
@@ -99,7 +99,7 @@ def check_calendar_by_district(
     location_dtls,
     start_date,
     minimum_slots,
-    min_age_booking
+    min_age_booking,
 ):
     """
     This function
@@ -132,9 +132,7 @@ def check_calendar_by_district(
                         f"{today.strftime('%Y-%m-%d %H:%M:%S')}: "
                         f"{len(resp['centers'])}"
                     )
-                    options += viable_options(
-                        resp, minimum_slots, min_age_booking
-                    )
+                    options += viable_options(resp, minimum_slots, min_age_booking)
 
         return options
     except Exception as e:
@@ -228,7 +226,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
         location_dtls,
         start_date,
         minimum_slots,
-        min_age_booking
+        min_age_booking,
     )
 
     if isinstance(options, bool):

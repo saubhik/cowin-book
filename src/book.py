@@ -1,6 +1,7 @@
 import copy
 from types import SimpleNamespace
 
+import fire as fire
 import requests
 
 from utils import (
@@ -12,9 +13,7 @@ from utils import (
 )
 
 
-def main():
-    filename = "config.json"
-
+def main(filename):
     try:
         base_request_header = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
@@ -45,7 +44,7 @@ def main():
             if beneficiaries_list.status_code != 200:
                 # if token invalid, regenerate OTP and new token
                 print("Reauthorizing...")
-                reauthorize()
+                reauthorize(filename=filename)
 
     except Exception as e:
         print(str(e))
@@ -53,4 +52,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    fire.Fire(main)

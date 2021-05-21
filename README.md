@@ -25,7 +25,8 @@ This is tested in MacOS. Can run on Linux with minimal changes.
   source venv/bin/activate
   pip install -r requirements.txt
   npm install # For node server (updates tokens every 15 minutes)
-  chmod +x ./run.sh
+  python src/book.py --filename config1.json
+  python src/book.py --filename config2.json
   ```
-
-Finally, run `./run.sh` whenever you need to run this.
+  Each config is associated with a single mobile number. Each mobile number can
+  accommodate at most 4 beneficiaries.
