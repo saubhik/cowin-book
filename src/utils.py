@@ -11,7 +11,6 @@ import tabulate
 from captcha import captcha_buider
 
 BOOKING_URL = "https://cdn-api.co-vin.in/api/v2/appointment/schedule"
-BENEFICIARIES_URL = "https://cdn-api.co-vin.in/api/v2/appointment/beneficiaries"
 CALENDAR_URL_DISTRICT = (
     "https://cdn-api.co-vin.in/api/v2/appointment"
     "/sessions/calendarByDistrict?district_id={0}&date={1} "
@@ -95,11 +94,11 @@ def get_saved_user_info(filename):
 
 
 def check_calendar_by_district(
-    request_header,
-    location_dtls,
-    start_date,
-    minimum_slots,
-    min_age_booking,
+        request_header,
+        location_dtls,
+        start_date,
+        minimum_slots,
+        min_age_booking,
 ):
     """
     This function
@@ -120,7 +119,6 @@ def check_calendar_by_district(
             )
 
             if resp.status_code == 401:
-                print("TOKEN INVALID")
                 return False
 
             elif resp.status_code == 200:
@@ -257,7 +255,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
         )
         choice = f"1.{preferred_slot}"
     else:
-        for i in range(5, 0, -1):
+        for i in range(10, 0, -1):
             msg = f"No viable options. Next update in {i} seconds.."
             print(msg, end="\r", flush=True)
             sys.stdout.flush()
@@ -280,7 +278,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
                 ],
                 "dose": 2
                 if [beneficiary["status"] for beneficiary in beneficiary_dtls][0]
-                == "Partially Vaccinated"
+                   == "Partially Vaccinated"
                 else 1,
                 "center_id": options[choice[0] - 1]["center_id"],
                 "session_id": options[choice[0] - 1]["session_id"],
@@ -292,6 +290,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
 
         except IndexError:
             print("============> Invalid Option!")
+            sys.exit()
 
 
 def get_min_age(beneficiary_dtls):
