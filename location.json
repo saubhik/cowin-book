@@ -1,0 +1,12 @@
+{
+  "location_dtls": [
+    {
+      "district_id": 725,
+      "district_name": "Kolkata"
+    },
+    {
+      "district_id": 730,
+      "district_name": "North 24 Parganas"
+    }
+  ]
+}

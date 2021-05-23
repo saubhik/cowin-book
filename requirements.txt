@@ -1,6 +1,7 @@
-requests
-tabulate
+requests~=2.25.1
+tabulate~=0.8.9
 svglib==1.0.1
 reportlab
 pyinstaller
 pysimplegui
+fire~=0.4.0

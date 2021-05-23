@@ -11,15 +11,11 @@ import tabulate
 from captcha import captcha_buider
 
 BOOKING_URL = "https://cdn-api.co-vin.in/api/v2/appointment/schedule"
-CALENDAR_URL_DISTRICT = (
-    "https://cdn-api.co-vin.in/api/v2/appointment"
-    "/sessions/calendarByDistrict?district_id={0}&date={1} "
-)
 CAPTCHA_URL = "https://cdn-api.co-vin.in/api/v2/auth/getRecaptcha"
 
 
-def reauthorize(filename):
-    subprocess.run(["node", "src/get-token.js", filename])
+def reauthorize(config):
+    subprocess.run(["node", "src/get-token.js", config])
 
 
 def viable_options(resp, minimum_slots, min_age_booking):
@@ -30,7 +26,12 @@ def viable_options(resp, minimum_slots, min_age_booking):
             can_display = False
             total_available_capacity = 0
             for session in center["sessions"]:
-                if session["min_age_limit"] <= min_age_booking:
+                if (
+                    (min_age_booking >= 45 and session["min_age_limit"] == 45)
+                    or (45 > min_age_booking >= 18 and session["min_age_limit"] == 18)
+                    # and session["fee_type"] == "Paid"
+                    and session["vaccine"] == "COVISHIELD"
+                ):
                     can_display = True
                     total_available_capacity += session["available_capacity"]
                     if session["available_capacity"] >= minimum_slots:
@@ -49,10 +50,9 @@ def viable_options(resp, minimum_slots, min_age_booking):
             if can_display:
                 display_options.append(
                     {
+                        "timestamp": resp["timestamp"],
                         "name": center["name"],
-                        "district": center["district_name"],
-                        "pincode": center["pincode"],
-                        "capacity": total_available_capacity,
+                        "available": total_available_capacity,
                     }
                 )
 
@@ -89,55 +89,10 @@ def display_info_dict(details):
 def get_saved_user_info(filename):
     with open(filename, "r") as f:
         data = json.load(f)
-
     return data
 
 
-def check_calendar_by_district(
-        request_header,
-        location_dtls,
-        start_date,
-        minimum_slots,
-        min_age_booking,
-):
-    """
-    This function
-        1. Takes details required to check vaccination calendar
-        2. Filters result by minimum number of slots available
-        3. Returns False if token is invalid
-        4. Returns list of vaccination centers & slots if available
-    """
-    try:
-        today = datetime.datetime.today()
-        base_url = CALENDAR_URL_DISTRICT
-
-        options = []
-        for location in location_dtls:
-            resp = requests.get(
-                base_url.format(location["district_id"], start_date),
-                headers=request_header,
-            )
-
-            if resp.status_code == 401:
-                return False
-
-            elif resp.status_code == 200:
-                resp = resp.json()
-                if "centers" in resp:
-                    print(
-                        f"Centers available in {location['district_name']} "
-                        f"from {start_date} as of "
-                        f"{today.strftime('%Y-%m-%d %H:%M:%S')}: "
-                        f"{len(resp['centers'])}"
-                    )
-                    options += viable_options(resp, minimum_slots, min_age_booking)
-
-        return options
-    except Exception as e:
-        print(str(e))
-
-
-def generate_captcha(request_header):
+def generate_captcha(request_header, api_key):
     print(
         "================================= GETTING CAPTCHA "
         "=================================================="
@@ -146,11 +101,11 @@ def generate_captcha(request_header):
     print(f"CAPTCHA Response Code: {resp.status_code}")
 
     if resp.status_code == 200:
-        captcha = captcha_buider(resp.json())
+        captcha = captcha_buider(resp.json(), api_key)
         return captcha
 
 
-def book_appointment(request_header, details):
+def book_appointment(request_header, details, api_key):
     """
     This function
         1. Takes details in json format
@@ -168,7 +123,7 @@ def book_appointment(request_header, details):
         )
         valid_captcha = True
         while valid_captcha:
-            captcha = generate_captcha(request_header)
+            captcha = generate_captcha(request_header, api_key)
             details["captcha"] = captcha
 
             print(
@@ -182,16 +137,14 @@ def book_appointment(request_header, details):
 
             if resp.status_code == 401:
                 return False
-
             elif resp.status_code == 200:
-                print("Hey, Hey, Hey! It's your lucky day!")
-                print("\nPress any key thrice to exit program.")
+                print("It's your lucky day!")
                 sys.exit()
-
             elif resp.status_code == 400:
                 print(f"Response: {resp.status_code} : {resp.text}")
                 pass
-
+            elif resp.status_code == 409:
+                sys.exit()
             else:
                 print(f"Response: {resp.status_code} : {resp.text}")
                 return True
@@ -213,22 +166,18 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
 
     preferred_slot = kwargs["preferred_slot"]
     minimum_slots = kwargs["min_slots"]
+    api_key = kwargs["api_key"]
 
     # Start checking available slots from next day.
     start_date = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime(
         "%d-%m-%Y"
     )
 
-    options = check_calendar_by_district(
-        request_header,
-        location_dtls,
-        start_date,
-        minimum_slots,
-        min_age_booking,
-    )
-
-    if isinstance(options, bool):
-        return False
+    options = []
+    for location in location_dtls:
+        with open(file=f"calendar-{location['district_id']}.json", mode="r") as f:
+            resp = json.load(f)
+        options += viable_options(resp, minimum_slots, min_age_booking)
 
     options = sorted(
         options,
@@ -255,7 +204,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
         )
         choice = f"1.{preferred_slot}"
     else:
-        for i in range(10, 0, -1):
+        for i in range(3, 0, -1):
             msg = f"No viable options. Next update in {i} seconds.."
             print(msg, end="\r", flush=True)
             sys.stdout.flush()
@@ -278,7 +227,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
                 ],
                 "dose": 2
                 if [beneficiary["status"] for beneficiary in beneficiary_dtls][0]
-                   == "Partially Vaccinated"
+                == "Partially Vaccinated"
                 else 1,
                 "center_id": options[choice[0] - 1]["center_id"],
                 "session_id": options[choice[0] - 1]["session_id"],
@@ -286,7 +235,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
             }
 
             print(f"Booking with info: {new_req}")
-            return book_appointment(request_header, new_req)
+            return book_appointment(request_header, new_req, api_key)
 
         except IndexError:
             print("============> Invalid Option!")

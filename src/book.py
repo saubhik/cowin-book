@@ -11,20 +11,19 @@ from utils import (
 )
 
 
-def main(filename):
+def main(config):
     try:
         base_request_header = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
-                          "AppleWebKit/537.36 (KHTML, like Gecko) "
-                          "Chrome/39.0.2171.95 Safari/537.36",
-            # "x-api-key": "3sjOr2rmM52GzhpMHjDEE1kpQeRxwFDr4YcBEimi"
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/39.0.2171.95 Safari/537.36",
         }
 
-        collected_details = get_saved_user_info(filename)
+        collected_details = get_saved_user_info(config)
         display_info_dict(collected_details)
 
         while True:
-            info = SimpleNamespace(**get_saved_user_info(filename))
+            info = SimpleNamespace(**get_saved_user_info(config))
             request_header = copy.deepcopy(base_request_header)
             request_header["Authorization"] = info.auth
 
@@ -35,9 +34,10 @@ def main(filename):
                 info.location_dtls,
                 preferred_slot=info.preferred_slot,
                 min_slots=info.minimum_slots,
+                api_key=info.api_key,
             ):
                 print("Reauthorizing...")
-                reauthorize(filename=filename)
+                reauthorize(config=config)
 
     except Exception as e:
         print(str(e))
