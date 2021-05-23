@@ -24,17 +24,25 @@ def viable_options(resp, minimum_slots, min_age_booking):
     if len(resp["centers"]) >= 0:
         for center in resp["centers"]:
             can_display = False
-            total_available_capacity = 0
+            dose1 = dose2 = 0
             for session in center["sessions"]:
                 if (
-                    (min_age_booking >= 45 and session["min_age_limit"] == 45)
-                    or (45 > min_age_booking >= 18 and session["min_age_limit"] == 18)
-                    # and session["fee_type"] == "Paid"
+                    (
+                        (min_age_booking >= 45 and session["min_age_limit"] == 45)
+                        or (
+                            45 > min_age_booking >= 18
+                            and session["min_age_limit"] == 18
+                        )
+                    )
+                    and center["fee_type"] == "Paid"
                     and session["vaccine"] == "COVISHIELD"
                 ):
                     can_display = True
-                    total_available_capacity += session["available_capacity"]
-                    if session["available_capacity"] >= minimum_slots:
+                    dose1 += session["available_capacity_dose1"]
+                    dose2 += session["available_capacity_dose2"]
+
+                    # TODO: Change this for dose 2
+                    if session["available_capacity_dose1"] >= minimum_slots:
                         out = {
                             "name": center["name"],
                             "district": center["district_name"],
@@ -52,7 +60,8 @@ def viable_options(resp, minimum_slots, min_age_booking):
                     {
                         "timestamp": resp["timestamp"],
                         "name": center["name"],
-                        "available": total_available_capacity,
+                        "dose1": dose1,
+                        "dose2": dose2
                     }
                 )
 
@@ -168,16 +177,15 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
     minimum_slots = kwargs["min_slots"]
     api_key = kwargs["api_key"]
 
-    # Start checking available slots from next day.
-    start_date = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime(
-        "%d-%m-%Y"
-    )
-
-    options = []
-    for location in location_dtls:
-        with open(file=f"calendar-{location['district_id']}.json", mode="r") as f:
-            resp = json.load(f)
-        options += viable_options(resp, minimum_slots, min_age_booking)
+    try:
+        options = []
+        for location in location_dtls:
+            with open(file=f"calendar-{location['district_id']}.json", mode="r") as f:
+                resp = json.load(f)
+            options += viable_options(resp, minimum_slots, min_age_booking)
+    except Exception as e:
+        print(str(e))
+        return True
 
     options = sorted(
         options,
@@ -236,7 +244,6 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
 
             print(f"Booking with info: {new_req}")
             return book_appointment(request_header, new_req, api_key)
-
         except IndexError:
             print("============> Invalid Option!")
             sys.exit()

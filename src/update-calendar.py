@@ -52,8 +52,7 @@ def main(location_config: str) -> None:
                 ) as f:
                     json.dump(resp, f)
 
-            # Sleep 4 seconds for each request to avoid request blocks.
-            time.sleep(4)
+            time.sleep(2)
 
 
 if __name__ == "__main__":
