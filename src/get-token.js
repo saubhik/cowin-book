@@ -49,6 +49,7 @@ function sleep(time) {
         headless: false,
     });
     const page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(30_000);
     await page.goto('https://selfregistration.cowin.gov.in/');
     await page.waitForSelector(selectors.mobileInput);
     await sleep(2000);

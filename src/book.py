@@ -35,6 +35,7 @@ def main(config):
                 preferred_slot=info.preferred_slot,
                 min_slots=info.minimum_slots,
                 api_key=info.api_key,
+                appointment_id=info.appointment_id,
             ):
                 print("Reauthorizing...")
                 reauthorize(config=config)

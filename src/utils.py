@@ -11,6 +11,7 @@ import tabulate
 from captcha import captcha_buider
 
 BOOKING_URL = "https://cdn-api.co-vin.in/api/v2/appointment/schedule"
+REBOOKING_URL = "https://cdn-api.co-vin.in/api/v2/appointment/reschedule"
 CAPTCHA_URL = "https://cdn-api.co-vin.in/api/v2/auth/getRecaptcha"
 
 
@@ -34,8 +35,8 @@ def viable_options(resp, minimum_slots, min_age_booking):
                             and session["min_age_limit"] == 18
                         )
                     )
-                    and center["fee_type"] == "Paid"
                     and session["vaccine"] == "COVISHIELD"
+                    and center["fee_type"] == "Paid"
                 ):
                     can_display = True
                     dose1 += session["available_capacity_dose1"]
@@ -61,7 +62,7 @@ def viable_options(resp, minimum_slots, min_age_booking):
                         "timestamp": resp["timestamp"],
                         "name": center["name"],
                         "dose1": dose1,
-                        "dose2": dose2
+                        "dose2": dose2,
                     }
                 )
 
@@ -114,13 +115,7 @@ def generate_captcha(request_header, api_key):
         return captcha
 
 
-def book_appointment(request_header, details, api_key):
-    """
-    This function
-        1. Takes details in json format
-        2. Attempts to book an appointment using the details
-        3. Returns True or False depending on Token Validity
-    """
+def book_appointment(request_header, details, api_key, appointment_id):
     try:
         # Requires VLC to be installed.
         # Might need to change to cvlc in Linux.
@@ -140,7 +135,11 @@ def book_appointment(request_header, details, api_key):
                 "=================================================="
             )
 
-            resp = requests.post(BOOKING_URL, headers=request_header, json=details)
+            url = BOOKING_URL
+            if appointment_id:
+                url = REBOOKING_URL
+
+            resp = requests.post(url, headers=request_header, json=details)
             print(f"Booking Response Code: {resp.status_code}")
             print(f"Booking Response : {resp.text}")
 
@@ -154,6 +153,9 @@ def book_appointment(request_header, details, api_key):
                 pass
             elif resp.status_code == 409:
                 sys.exit()
+            elif resp.status_code == 429:
+                print("Trying after 60 seconds...")
+                time.sleep(60)
             else:
                 print(f"Response: {resp.status_code} : {resp.text}")
                 return True
@@ -176,6 +178,7 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
     preferred_slot = kwargs["preferred_slot"]
     minimum_slots = kwargs["min_slots"]
     api_key = kwargs["api_key"]
+    appointment_id = kwargs["appointment_id"]
 
     try:
         options = []
@@ -241,9 +244,15 @@ def check_and_book(request_header, beneficiary_dtls, location_dtls, **kwargs):
                 "session_id": options[choice[0] - 1]["session_id"],
                 "slot": options[choice[0] - 1]["slots"][choice[1] - 1],
             }
+            if appointment_id:
+                new_req = {
+                    "appointment_id": appointment_id,
+                    "session_id": options[choice[0] - 1]["session_id"],
+                    "slot": options[choice[0] - 1]["slots"][choice[1] - 1],
+                }
 
             print(f"Booking with info: {new_req}")
-            return book_appointment(request_header, new_req, api_key)
+            return book_appointment(request_header, new_req, api_key, appointment_id)
         except IndexError:
             print("============> Invalid Option!")
             sys.exit()

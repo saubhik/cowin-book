@@ -17,6 +17,7 @@ def main(configs: List[str]) -> None:
                 f"{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}..."
             )
             reauthorize(config)
+            time.sleep(3)
 
         # Do this every 14 minutes.
         for i in range(14 * 60, 0, -1):

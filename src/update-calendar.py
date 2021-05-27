@@ -15,7 +15,6 @@ CALENDAR_URL_DISTRICT = (
 
 def main(location_config: str) -> None:
     while True:
-        # Start checking available slots from next day.
         start_date = (datetime.today() + timedelta(days=1)).strftime("%d-%m-%Y")
 
         with open(file=location_config, mode="r") as f:
@@ -52,7 +51,7 @@ def main(location_config: str) -> None:
                 ) as f:
                     json.dump(resp, f)
 
-            time.sleep(2)
+            time.sleep(4)
 
 
 if __name__ == "__main__":
