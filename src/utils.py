@@ -1,6 +1,8 @@
 import copy
 import datetime
 import json
+import os
+import signal
 import subprocess
 import sys
 import time
@@ -16,7 +18,16 @@ CAPTCHA_URL = "https://cdn-api.co-vin.in/api/v2/auth/getRecaptcha"
 
 
 def reauthorize(config):
-    subprocess.run(["node", "src/get-token.js", config])
+    while True:
+        with subprocess.Popen(
+            ["node", "src/get-token.js", config], preexec_fn=os.setsid
+        ) as process:
+            try:
+                process.communicate(timeout=180)
+                break
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGINT)
+                print("Retrying authorization...")
 
 
 def viable_options(resp, minimum_slots, min_age_booking):
