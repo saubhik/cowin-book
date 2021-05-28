@@ -6,10 +6,9 @@ from datetime import datetime, timedelta
 import fire
 import requests
 
-# This does NOT require auth.
 CALENDAR_URL_DISTRICT = (
     "https://cdn-api.co-vin.in/api/v2/appointment"
-    "/sessions/public/calendarByDistrict?district_id={0}&date={1} "
+    "/sessions/calendarByDistrict?district_id={0}&date={1}&vaccine={2}"
 )
 
 
@@ -22,11 +21,14 @@ def main(location_config: str) -> None:
 
         for location in config["location_dtls"]:
             resp = requests.get(
-                CALENDAR_URL_DISTRICT.format(location["district_id"], start_date),
+                CALENDAR_URL_DISTRICT.format(
+                    location["district_id"], start_date, "COVISHIELD"
+                ),
                 headers={
                     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/39.0.2171.95 Safari/537.36"
+                    "Chrome/39.0.2171.95 Safari/537.36",
+                    "Authorization": config["auth"],
                 },
             )
 
@@ -51,7 +53,7 @@ def main(location_config: str) -> None:
                 ) as f:
                     json.dump(resp, f)
 
-            time.sleep(4)
+            time.sleep(3.5)
 
 
 if __name__ == "__main__":

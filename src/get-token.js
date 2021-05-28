@@ -4,6 +4,7 @@ const fastify = require('fastify');
 const cors = require('fastify-cors');
 
 const configPath = __dirname + "/../" + process.argv.slice(2)[0]
+const locationConfigPath = __dirname + "/../location.json"
 const selectors = {
     mobileInput: 'input[appmobilenumber=true]',
     getOtp: 'ion-button',
@@ -44,6 +45,7 @@ function sleep(time) {
 
 (async () => {
     const config = require(configPath);
+    const locationConfig = require(locationConfigPath);
 
     const browser = await puppeteer.launch({
         headless: false,
@@ -67,7 +69,9 @@ function sleep(time) {
         ) {
             const headers = request.headers();
             config.auth = headers['authorization'];
+            locationConfig.auth = headers['authorization'];
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+            fs.writeFileSync(locationConfigPath, JSON.stringify(locationConfig, null, 2));
             await browser.close();
         }
     });
